@@ -4,7 +4,7 @@
 
 ## Windows 本地启动
 
-1. 将源码 ZIP 解压。把其中的项目文件夹放到 `D:\workspace\tarot`，或者保留它为 `D:\workspace\tarot\light-tarot` 子文件夹。
+1. 下载并解压源码，或克隆仓库到任意目录。进入包含 `package.json` 的项目根目录。
 2. 安装 Node.js 22 或更新版本。打开 PowerShell，在包含 `package.json` 的目录运行：
 
    ```powershell
@@ -63,11 +63,14 @@ npm start
 
 | 配置 | 凭据 | API |
 |---|---|---|
-| OpenAI | OpenAI Platform API Key | [Responses API](https://developers.openai.com/api/reference/resources/responses/methods/create) |
-| Codex 模型 | 有对应模型权限的 OpenAI Platform API Key | [Responses API（例如 gpt-5-codex）](https://developers.openai.com/api/docs/models/gpt-5-codex) |
+| OpenAI（包括 Codex 模型） | 有所选模型权限的 OpenAI Platform API Key | [Responses API](https://developers.openai.com/api/reference/resources/responses/methods/create) |
 | DeepSeek | DeepSeek API Key | [Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion/) |
 
-Codex 配置不是用 ChatGPT/Codex 登录状态走订阅额度，不接收登录缓存或 OAuth 令牌。后台固定使用服务商官方 HTTPS 地址，不能填任意转发 URL；旧的 `TAROT_API_*` 自定义 Chat Completions 只在未通过后台保存时作为兼容入口。保存离线设置也会明确覆盖旧环境变量模式。
+OpenAI 只填一套 Key。塔罗解读可以用默认的 `gpt-5-mini`；要使用 [Codex 模型](https://developers.openai.com/api/docs/models/gpt-5-codex)，在同一栏改填相应模型 ID（如 `gpt-5-codex`）。这不是用 ChatGPT/Codex 登录状态走订阅额度，不接收登录缓存或 OAuth 令牌。
+
+从旧版两栏配置升级时：如果正在使用 Codex，就把当前模型与 Key 带到 OpenAI；否则优先保留已配置的 OpenAI 项，只有 Codex 配置时才沿用它。其他服务的启用状态不变。启动不会改写旧文件，下一次保存才写入合并后的配置；不再单独保留未采用的旧栏。
+
+后台固定使用服务商官方 HTTPS 地址，不能填任意转发 URL；旧的 `TAROT_API_*` 自定义 Chat Completions 只在未通过后台保存时作为兼容入口。保存离线设置也会明确覆盖旧环境变量模式。
 
 ### 域名部署
 

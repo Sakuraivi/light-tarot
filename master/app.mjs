@@ -1,7 +1,6 @@
 const $=s=>document.querySelector(s), login=$('#login'), settings=$('#settings'), logout=$('#logout'), status=$('#status');
-const keys=['openai','codex','deepseek'];
-const labels={openai:'OpenAI Platform API Key；通过 Responses API 解读。',codex:'使用有模型权限的 OpenAI Platform API Key。不要粘贴 ChatGPT 登录令牌、Codex 登录缓存或订阅凭据。',deepseek:'使用 DeepSeek API Key；通过 Chat Completions 解读。'};
-let rendered;
+const keys=['openai','deepseek'];
+const labels={openai:'使用 OpenAI Platform API Key。普通模型和有权限的 Codex 模型都在这一栏通过 Responses API 调用。',deepseek:'使用 DeepSeek API Key；通过 Chat Completions 解读。'};
 function msg(text='',error=false){status.hidden=!text;status.textContent=text;status.dataset.error=String(error);}
 async function api(name,data){
  const r=await fetch('/master/api/'+name,data===undefined?{cache:'no-store'}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),cache:'no-store'});
@@ -11,7 +10,6 @@ async function api(name,data){
 }
 function loggedOut(){settings.hidden=true;logout.hidden=true;login.hidden=false;$('#providers').replaceChildren();$('#password').value='';}
 function render(data){
- rendered=data;
  login.hidden=true;settings.hidden=false;logout.hidden=false;
  const active=$('#active');active.replaceChildren();
  active.add(new Option('离线试读（不调用模型）','offline'));
@@ -27,6 +25,11 @@ function render(data){
   e.innerHTML='<div class="provider-top"><h2></h2><span class="badge"></span></div><p></p><div class="fields"><label>模型 ID <input class="model" required maxlength="120" spellcheck="false" autocomplete="off"></label><label>API Key <input class="key" type="password" maxlength="512" autocomplete="new-password"></label></div><div class="tools"><label><input class="clear" type="checkbox"> 清除已保存的 Key</label><button type="button" class="quiet test">测试已保存的连接</button></div>';
   e.querySelector('h2').textContent=p.label;e.querySelector('.badge').textContent=p.hasKey?'已配置':'未配置';
   e.querySelector('p').textContent=labels[id];e.querySelector('.model').value=p.model;
+  if(id==='openai'){
+   const list=document.createElement('datalist');list.id='openai-models';
+   for(const model of ['gpt-5-mini','gpt-5-codex'])list.append(new Option(model,model));
+   e.append(list);e.querySelector('.model').setAttribute('list',list.id);
+  }
   e.querySelector('.key').placeholder=p.hasKey?'已保存，留空不改':'请输入服务商 Key';
   e.querySelector('.clear').disabled=!p.hasKey;
   const test=e.querySelector('.test');test.disabled=!p.hasKey;
