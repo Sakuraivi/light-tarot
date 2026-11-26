@@ -1,0 +1,21 @@
+:root{color-scheme:light;--ink:#173b32;--muted:#52655a;--line:#bec6b1;--paper:#f7f3df;--coral:#d98771;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#dfE6d2;color:var(--ink)}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:radial-gradient(ellipse at top right,#f6ebc8,transparent 60%),repeating-linear-gradient(118deg,#e2e9d7 0px,#e2e9d7 5px,#e0e7d4 6px,#e0e7d4 7px);min-height:100vh}
+main{max-width:920px;margin:auto;padding:52px clamp(18px,5vw,56px) 32px}
+.mast{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin:0 0 30px;border-bottom:1px solid var(--line);padding-bottom:22px}
+.eyebrow,.foot{letter-spacing:.15em;font:12px ui-monospace,monospace;color:#7b4c3d}
+h1{font-size:clamp(32px,6vw,54px);margin:12px 0 0}p{line-height:1.65;color:var(--muted)}.mast p:not(.eyebrow){margin:9px 0 0}
+section,.provider,#login{background:#f7f3dfda;border:1px solid #aeb9a0;border-radius:14px;padding:20px;margin:0 0 14px;box-shadow:3px 4px 0 #173b3210}
+.route p,.provider p{font-size:13px;margin:8px 0 0}.provider h2{margin:0;font-size:21px}
+.provider-top,.tools,.entry,.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.provider-top{justify-content:space-between}.badge{font-size:12px;padding:4px 10px;border:1px solid #aeb9a0;border-radius:99px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}
+label{display:block;font-weight:650;font-size:14px}.entry{margin-top:8px}
+input:not([type=checkbox]),select{width:100%;padding:11px 12px;margin-top:6px;border:1px solid #9daa91;border-radius:8px;background:#fffdf4;color:var(--ink);font:inherit}
+.entry input{max-width:420px;margin-top:0}
+input[type=checkbox]{accent-color:#173b32}.tools label{font-weight:500}
+button{cursor:pointer;border:1px solid #234d42;border-radius:999px;background:var(--coral);color:var(--ink);font:inherit;font-weight:680;padding:9px 16px}
+button:disabled{cursor:progress;opacity:.5}.quiet{background:transparent}select:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid #974c39;outline-offset:3px}
+#status{background:#eef2e6;border-left:3px solid #2e6553;padding:12px 15px;position:sticky;top:0;z-index:3}#status[data-error=true]{background:#fae8dc;border-color:#a94637}
+.note,.foot{font-size:12px}.actions{justify-content:flex-end}.foot{border-top:1px solid var(--line);margin-top:32px;padding-top:17px}
+@media(max-width:580px){main{padding-top:28px}.fields{grid-template-columns:1fr}.mast{gap:6px}.mast button{margin-top:10px;white-space:nowrap}}

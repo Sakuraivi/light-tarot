@@ -1,0 +1,16 @@
+import {readFile,writeFile} from 'node:fs/promises';
+import {deck} from '../public/core.mjs';
+const root=new URL('../public/',import.meta.url);
+const read=(p,encoding='utf8')=>readFile(new URL(p,root),encoding);
+let html=await read('index.html');
+const css=(await read('site.css'))+'\n'+(await read('local.css'));
+let core=(await read('core.mjs')).replace(/^export /gm,'');
+const poster=(await read('poster.mjs')).replace(/^import .*;\n/m,'').replace(/^export /gm,'');
+let app=(await read('app.mjs')).replace(/^import .*;\n/gm,'');
+app=app.slice(0,app.indexOf('configReady=fetch('))+'configReady=Promise.resolve();\n';
+const imgs=await Promise.all(deck.map(c=>read(c.src,'base64')));
+const embed='const inlineAssets='+JSON.stringify(imgs)+';\ndeck.forEach((d,i)=>d.src="data:image/jpeg;base64,"+inlineAssets[i]);\n';
+let js=core+'\n'+embed+'\n'+poster+'\n'+app;
+if(/<\/script/i.test(js))throw Error('Unsafe script delimiter');
+html=html.replace('<link rel="stylesheet" href="./site.css"><link rel="stylesheet" href="./local.css">',()=>'<style>'+css+'</style>').replace('<script type="module" src="./app.mjs"></script>','').replace('</body>',()=>'<script type="module">\n'+js+'</script></body>');
+await writeFile(process.argv[2]||'light-tarot-preview.html',html);

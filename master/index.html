@@ -1,0 +1,17 @@
+<!doctype html><html lang="zh-CN"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><title>light-tarot · 服务配置</title>
+<link rel="icon" href="data:,"><link rel="stylesheet" href="/master/style.css">
+<script type="module" src="/master/app.mjs"></script>
+</head><body><main>
+<header class="mast"><div><p class="eyebrow">LIGHT TAROT / MASTER</p><h1>AI 服务配置</h1><p>管理解读模型。访客页面不显示管理入口。</p></div><button class="quiet" id="logout" hidden type="button">退出登录</button></header>
+<p id="status" role="status" hidden></p>
+<form id="login" hidden><label for="password">管理员密码</label>
+<div class="entry"><input id="password" type="password" name="password" autocomplete="current-password" maxlength="512" required><button type="submit">登录后台</button></div></form>
+<form id="settings" hidden>
+<section class="route"><label for="active">当前向用户提供解读的服务</label><select id="active"></select><p>切到离线后，访客不会调用模型。前台重新打开后会读取最新状态。</p></section>
+<div id="providers"></div>
+<p class="note">Key 只加密保存在服务器，不回显。留空保持现有 Key；勾选清除后保存才生效。连通性测试使用已保存的配置，会发出一次固定测试请求，可能计费。</p>
+<div class="actions"><button type="submit">保存配置</button></div>
+</form><p class="foot">LIGHT TAROT / SERVER SETTINGS</p>
+</main></body></html>

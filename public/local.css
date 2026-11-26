@@ -1,0 +1,4 @@
+[hidden]{display:none!important} #stage{display:contents}
+.mode-note{font:12px/1.65 "PingFang SC",sans-serif;color:#536b61;margin:10px 0 0;letter-spacing:.03em}
+.modal-status{font:13px/1.5 sans-serif;color:#496558;margin:4px 20px 14px}
+:focus-visible{outline:2px solid #963f35;outline-offset:4px}
