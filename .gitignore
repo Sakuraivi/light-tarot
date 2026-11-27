@@ -3,6 +3,7 @@
 !.env.example
 .tarot-data/
 node_modules/
+.wrangler/
 .DS_Store
 *.enc
 *.tmp

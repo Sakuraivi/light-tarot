@@ -77,3 +77,19 @@ OpenAI 只填一套 Key。塔罗解读可以用默认的 `gpt-5-mini`；要使�
 GitHub 仓库不会启动 Node，也不会自动让域名生效。部署时把 `TAROT_PUBLIC_ORIGIN` 设为访问域名的 HTTPS 来源（如 `https://tarot.example.com`），保留回环监听，通过同机的 HTTPS 反向代理转发，保留原始 Host，不记录请求体。建议在边缘对 `/master` 再加访问限制，并为公开的 `/api/read` 配额控制。应用本身的在线请求默认最多每小时 60 次、同时 2 个；用 `TAROT_AI_HOURLY_LIMIT` 调整。单文件 HTML 不包含管理后台。
 
 开发测试：`npm test`；`node scripts/check-master.mjs`（只使用本机端口和模拟服务，不需要真实 Key）；`node scripts/check-server.mjs`（验证旧环境变量模式与失败重试）。
+
+## Cloudflare 前后端独立发布
+
+同一域名 `tarot.sakura.observer` 上，`light-tarot-web` 发布 `public/`，现有 `light-tarot` Worker 继续负责 `/api`、`/api/*`、`/master`、`/master/*`。前端 Worker 通过 `TAROT_API` Service Binding 转发这些路径，保留原请求的地址、方法、正文、Origin 和 Cookie。模型 Key、管理密码、持久化设置仍只在现有后端；不要写进前端配置或 `public/`。
+
+从仓库根目录验证和发布前端：
+
+```sh
+npm test
+npx wrangler deploy --config wrangler.web.jsonc --dry-run
+npx wrangler deploy --config wrangler.web.jsonc
+```
+
+前端配置不自动创建域名或路由，也不开启 `workers.dev` 和版本预览 URL。首次发布需在 Cloudflare 确认 `tarot.sakura.observer/*` 没有冲突的 Worker Route 后，将该路由绑定到 `light-tarot-web`；保留现有 Custom Domain、后端与 Durable Object 不变。这样 Cloudflare 会优先调用前端路由，而前端通过 Service Binding 直接调用后端。切换后检查首页、前端 JS/CSS、`GET /api/config` 和 `/master`，不要为验收发送付费模型请求。需要回退时，只撤销本次新建的前端路由，旧 Custom Domain 会继续指向原 Worker。
+
+后续改手机页面只执行上述前端发布命令。后端依然走其原有 Worker 发布流程；本仓库的 `server.mjs` 是本机 Node 入口，不能拿来直接覆盖线上 Worker。详见 [Service Bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) 和 [Routes](https://developers.cloudflare.com/workers/configuration/routing/routes/)。
