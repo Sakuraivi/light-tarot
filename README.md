@@ -92,4 +92,26 @@ npx wrangler deploy --config wrangler.web.jsonc
 
 前端配置不自动创建域名或路由，也不开启 `workers.dev` 和版本预览 URL。首次发布需在 Cloudflare 确认 `tarot.sakura.observer/*` 没有冲突的 Worker Route 后，将该路由绑定到 `light-tarot-web`；保留现有 Custom Domain、后端与 Durable Object 不变。这样 Cloudflare 会优先调用前端路由，而前端通过 Service Binding 直接调用后端。切换后检查首页、前端 JS/CSS、`GET /api/config` 和 `/master`，不要为验收发送付费模型请求。需要回退时，只撤销本次新建的前端路由，旧 Custom Domain 会继续指向原 Worker。
 
-后续改手机页面只执行上述前端发布命令。后端依然走其原有 Worker 发布流程；本仓库的 `server.mjs` 是本机 Node 入口，不能拿来直接覆盖线上 Worker。详见 [Service Bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) 和 [Routes](https://developers.cloudflare.com/workers/configuration/routing/routes/)。
+后续改手机页面只执行上述前端发布命令。详见 [Service Bindings](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/) 和 [Routes](https://developers.cloudflare.com/workers/configuration/routing/routes/)。
+
+### 后端独立发布
+
+- `cloudflare/backend.mjs` 来自线上 `light-tarot` Worker 版本 `39e3546f` 的已构建代码。找回的是可读的部署产物，不是构建前的原文件；只把三份后台页面引用改为仓库已有的 `master/`，并移除不可用的旧 source-map 引用。`server.mjs` 和 `lib/` 仍是本机 Node 版本，不是生产 Worker 的入口。
+- `wrangler.backend.jsonc` 保留现网 Worker 名称、兼容日期、日志配置、`TAROT_BACKEND` 绑定及 SQLite Durable Object 的 `v1` 迁移。不要改类名、实例名或现有迁移标签来发布普通代码更新。`public/` 同时给原后端保留回退页面；正式前端依然由独立的 `light-tarot-web` 发布。
+- 后端继续使用 Cloudflare 已配置的 `TAROT_MASTER_PASSWORD`、`TAROT_MASTER_ENCRYPTION_KEY`、`TAROT_PUBLIC_ORIGIN`；模型配置仍在原 Durable Object。仓库不保存任何真实值。尤其不要轮换加密 Key 来发布，现有模型配置依赖它解密。
+
+验证不会发布：
+
+```sh
+npm test
+npx wrangler deploy --config wrangler.backend.jsonc --dry-run
+```
+
+后续需要实际发布后端时，先确认目标仍为 `light-tarot` 和当前线上版本，上传候选版本，再显式切换流量（将 `<version-id>` 替换为实际返回值）：
+
+```sh
+npx wrangler versions upload --config wrangler.backend.jsonc
+npx wrangler versions deploy --config wrangler.backend.jsonc <version-id>@100%
+```
+
+这套配置不负责生产域名和路由，不需要执行 `wrangler triggers deploy`。切换后验证 `/api/config` 和 `/master`，确认未登录设置接口仍拒绝。不要用实际模型调用做默认验收；如需回退，使用切换前记下的后端版本 ID。
