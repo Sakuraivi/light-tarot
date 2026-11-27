@@ -64,7 +64,11 @@ async function draw(raw){
   if(live){
    const rr=await fetch(new URL('./api/read',location.href),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(r),signal:AbortSignal.timeout(106000)});
    const result=await rr.json();
-   if(!rr.ok||!Array.isArray(result.copy)||!result.copy.length)throw new Error(result.error||'解读暂时不可用，请重试。');
+   if(!rr.ok||!Array.isArray(result.copy)||!result.copy.length){
+    const requestId=rr.headers.get('X-Request-Id');
+    const message=result.error||'解读暂时不可用，请重试。';
+    throw new Error(requestId?`${message}（请求 ID ${requestId}）`:message);
+   }
    copy=result.copy;
   }else copy=previewReading(r);
   await min;
@@ -85,15 +89,17 @@ function showResult(r,focus){
  const def=spreads[r.spread];
  stage.innerHTML=`<section class="result-stage">
  <div class="result-head"><div><p class="eyebrow">THE CARDS</p><h1 tabindex="-1">${def.title}</h1></div><p class="asked"><span>你问</span>${esc(r.question)}</p></div>
+ <div class="spread-guide"><span>本轮牌阵 · ${r.cards.length} 张</span><small>轻点牌面可放大</small></div>
  <div class="card-row cards-${r.cards.length}">${r.cards.map((c,i)=>{
   const name=deck[c.id-1].name,orientation=c.reversed?'逆位':'正位';
-  return `<article class="tarot-card"><div class="card-meta"><span>${number(i+1)}</span><span>${esc(c.slot)}</span></div><div class="art-window">${pic(c.id,`alt="${esc(name+' '+orientation)}" class="${c.reversed?'reversed':''}"`)}</div><div class="card-caption"><strong>${esc(name)}</strong><em>${orientation}</em></div></article>`;
+  return `<article class="tarot-card"><div class="card-meta"><span>${number(i+1)}</span><span>${esc(c.slot)}</span></div><div class="art-window">${pic(c.id,`alt="${esc(name+' '+orientation)}" class="${c.reversed?'reversed':''}"`)}</div><div class="card-caption"><strong>${esc(name)}</strong><em>${orientation}</em></div><button class="card-zoom" type="button" aria-haspopup="dialog" aria-label="放大第 ${i+1} 张：${esc(c.slot)}，${esc(name)}，${orientation}"></button></article>`;
  }).join('')}</div>
  <div class="reading-grid"><div class="reading-index">${sigil}<span>READING<br>${edition()}</span></div>
  <article class="reading-text"><div class="reading-copy">${r.copy.map(p=>`<p>${esc(p)}</p>`).join('')}</div>
  ${r.mode!=='live'?'<p class="mode-note">离线试读 · 基于牌义和牌阵，不是 AI 生成。</p>':''}
  <div class="result-actions"><button class="share-trigger" type="button">存长图分享 <span aria-hidden="true">↗</span></button><button class="secondary-button again" type="button">再抽一次 <span aria-hidden="true">↻</span></button></div>
  <p class="share-error" role="alert" hidden></p></article></div></section>`;
+ stage.querySelectorAll('.card-zoom').forEach((button,i)=>{button.onclick=()=>openCard(r.cards[i],i,r.cards.length);});
  $('.again',stage).onclick=()=>{serial++;pending=null;showHome();up();};
  $('.share-trigger',stage).onclick=()=>openShare(r);
  if(!modal){up();if(focus)$('h1',stage)?.focus({preventScroll:true});}
@@ -123,6 +129,13 @@ document.addEventListener('keydown',(e)=>{
  if(e.shiftKey&&document.activeElement===f[0]){e.preventDefault();f.at(-1).focus();}
  else if(!e.shiftKey&&document.activeElement===f.at(-1)){e.preventDefault();f[0].focus();}
 });
+function openCard(card,index,total){
+ const name=deck[card.id-1].name,orientation=card.reversed?'逆位':'正位';
+ showModal('share-modal card-detail-modal',name+' · '+orientation,
+ `<button class="share-backdrop" type="button" tabindex="-1" aria-label="关闭大图"></button>
+ <section class="share-sheet card-detail-sheet"><div class="share-sheet-head"><div><span>${number(index+1)} / ${number(total)} · ${esc(card.slot)}</span><strong>${esc(name)} · ${orientation}</strong></div><button class="close-button" type="button" aria-label="关闭大图">×</button></div>
+ <div class="card-detail-art"><div class="art-window">${pic(card.id,`alt="${esc(name+' '+orientation)}" class="${card.reversed?'reversed':''}"`)}</div></div></section>`);
+}
 function refreshHistory(){
  const list=$('.history-list',modal);if(!list)return;
  const stamp=(t)=>new Intl.DateTimeFormat('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date(t));
