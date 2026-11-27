@@ -3,17 +3,21 @@ import test from 'node:test';
 import web from '../cloudflare/web.mjs';
 
 const origin = 'https://tarot.sakura.observer';
-const response = new Response('worker reply');
 const bind = (backend, assets) => ({ TAROT_API: { fetch: backend }, ASSETS: { fetch: assets } });
 const unexpected = () => assert.fail('request reached the wrong Worker');
 
 test('static assets and near-match paths stay on the web Worker', async () => {
   for (const path of ['/', '/site.css', '/app.mjs', '/akashic/card-78.jpg', '/masterpiece', '/apiary']) {
     const req = new Request(origin + path);
-    assert.equal(await web.fetch(req, bind(unexpected, incoming => {
+    const reply = await web.fetch(req, bind(unexpected, incoming => {
       assert.equal(incoming, req);
-      return response;
-    })), response);
+      return new Response('worker reply', { headers: { ETag: 'fixture' } });
+    }));
+    assert.equal(await reply.text(), 'worker reply');
+    assert.equal(reply.headers.get('etag'), 'fixture');
+    assert.equal(reply.headers.get('referrer-policy'), 'no-referrer');
+    assert.equal(reply.headers.get('x-content-type-options'), 'nosniff');
+    assert.match(reply.headers.get('content-security-policy'), /frame-ancestors 'none'/);
   }
 });
 
